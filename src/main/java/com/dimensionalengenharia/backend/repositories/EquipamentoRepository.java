@@ -10,4 +10,7 @@ import java.util.Optional;
 public interface EquipamentoRepository extends JpaRepository<Equipamento, Long> {
 
     List<Equipamento> findByObraId(String obraId);
+    Optional<Equipamento> findByPatrimonio(String patrimonio);
+    @Query("SELECT e FROM Equipamento e JOIN FETCH e.obra ORDER BY e.id ASC")
+    List<Equipamento> findAllWithObra();
 }
