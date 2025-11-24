@@ -25,34 +25,36 @@ public class EquipamentoService {
         this.mapper = mapper;
     }
 
-    public List<Equipamento> getEquipamentos() {
-        return equipamentoRepository.findAll();
+    public List<EquipamentoDto> getEquipamentos() {
+        return equipamentoRepository.findAllWithObra().stream().map(mapper::toDto).toList();
     }
 
-    public List<Equipamento> getEquipamentosByObra(String obraId) {
-        return equipamentoRepository.findByObraId(obraId);
+    public List<EquipamentoDto> getEquipamentosByObra(String obraId) {
+        return equipamentoRepository.findByObraId(obraId).stream().map(mapper::toDto).toList();
     }
 
-    public Equipamento createEquipamento(EquipamentoDto equipamentoDto) {
+    public EquipamentoDto createEquipamento(EquipamentoDto equipamentoDto) {
         Obra obra = obraRepository.findById(equipamentoDto.obraId())
                 .orElseThrow(() -> new ResourceNotFoundException("Obra com ID " + equipamentoDto.obraId() + " não encontrado"));
 
         try {
             Equipamento novoEquipamento = mapper.toEntity(equipamentoDto, obra);
-            return equipamentoRepository.save(novoEquipamento);
+            return mapper.toDto(equipamentoRepository.save(novoEquipamento));
         } catch (DataIntegrityViolationException e) {
             throw new DataIntegrityViolationException("Erro ao salvar equipamento, patrimônio ou placa já existem.");
         }
     }
 
-    public Equipamento updateEquipamento(Long id, EquipamentoDto equipamentoDto) {
-        Obra obra = obraRepository.findById(equipamentoDto.obraId())
-                .orElseThrow(() -> new ResourceNotFoundException("Obra com ID " + equipamentoDto.obraId() + " não encontrado"));
+    public EquipamentoDto updateEquipamento(Long id, EquipamentoDto equipamentoDto) {
         Equipamento equipamentoExistente = equipamentoRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Equipamento não foi encontrado."));
 
         try {
-            equipamentoExistente.setObra(obra);
+            if(equipamentoDto.obraId() != null) {
+                Obra obra = obraRepository.findById(equipamentoDto.obraId())
+                        .orElseThrow(() -> new ResourceNotFoundException("Obra com ID " + equipamentoDto.obraId() + " não encontrado"));
+                equipamentoExistente.setObra(obra);
+            }
             if (equipamentoDto.patrimonio() != null) {
                 equipamentoExistente.setPatrimonio(equipamentoDto.patrimonio().toUpperCase());
             }
@@ -69,7 +71,7 @@ public class EquipamentoService {
                 equipamentoExistente.setEmpresa(equipamentoDto.empresa().toUpperCase());
             }
 
-            return equipamentoRepository.save(equipamentoExistente);
+            return mapper.toDto(equipamentoRepository.save(equipamentoExistente));
         } catch (DataIntegrityViolationException e) {
             throw new DataIntegrityViolationException("Erro ao salvar equipamento, patrimônio ou placa já existem.");
         }

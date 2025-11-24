@@ -20,6 +20,7 @@ public class EquipamentoMapper {
 
     public EquipamentoDto toDto(Equipamento equipamento) {
         return new EquipamentoDto(
+                equipamento.getId(),
                 equipamento.getPatrimonio(),
                 equipamento.getPlaca(),
                 equipamento.getDescricao(),
