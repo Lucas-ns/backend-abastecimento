@@ -1,0 +1,30 @@
+spring:
+  application:
+    name: backend_test
+
+  config:
+    import:
+      - 'file:.env[.properties]'
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/abastecimento
+    username: ${DB_USER} # abastecimento
+    password: ${DB_PASS} # bd_abastecimento_teste
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    show-sql: true
+
+  flyway:
+    enabled: true
+    locations:
+      - classpath:db/migration
+
+server:
+  servlet:
+    context-path: /api/v1
+
+#my:
+#  app:
+#    constants:
+#      prefix-url: http://localhost:8080
