@@ -1,0 +1,40 @@
+name: Deploy JAR
+
+on:
+  push:
+    branches: ["main"]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Build with Maven
+        run: mvn clean package -DskipTests
+
+      - name: Copy JAR to VPS
+        uses: appleboy/scp-action@v1.0.0
+        with:
+          host: ${{ secrets.VPS_IP }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          source: "target/*.jar"
+          target: "/home/lucasn/abastecimento-api"
+          strip_components: 1
+
+      - name: Restart Service
+        uses: appleboy/ssh-action@v1.2.3
+        with:
+          host: ${{ secrets.VPS_IP }}
+          username: ${{ secrets.VPS_USER }}
+          password: ${{ secrets.VPS_PASSWORD }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            mv /home/lucasn/abastecimento-api/*.jar /home/lucasn/abastecimento-api/myapp.jar
+            sudo systemctl restart abastecimento-api.service
