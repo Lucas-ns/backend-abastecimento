@@ -1,8 +1,12 @@
 name: Deploy JAR
 
 on:
+  pull_request:
+    branches:
+      - main
   push:
-    branches: ["main"]
+    branches:
+      - main
 
 jobs:
   deploy:
@@ -17,6 +21,15 @@ jobs:
 
       - name: Build with Maven
         run: mvn clean package -DskipTests
+
+      - name: Clean up older JAR
+        uses: appleboy/ssh-action@v1.2.3
+        with:
+          host: ${{ secrets.VPS_IP }}
+          username: ${{ secrets.VPS_USER }}
+          password: ${{ secrets.VPS_PASSWORD }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: rm /home/lucasn/abastecimento-api/*.jar
 
       - name: Copy JAR to VPS
         uses: appleboy/scp-action@v1.0.0
@@ -38,3 +51,4 @@ jobs:
           script: |
             mv /home/lucasn/abastecimento-api/*.jar /home/lucasn/abastecimento-api/myapp.jar
             sudo systemctl restart abastecimento-api.service
+            sudo systemctl daemon-reload
